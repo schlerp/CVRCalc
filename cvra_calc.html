@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>NT Cardiovascular Risk Calculator</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container">
+      
+      <header>
+        <h1>NT Cardiovascular Risk Calculator</h1>
+      </header>
+      
+      <form>
+        <!-- row 1 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_age">Age in Years</label>
+            <input type="text" class="form-control" id="text_age" placeholder="eg. 20">
+          </div>
+          <div class="form-group col">
+            <label for="select_eth">Ethnicity</label>
+            <select id="select_eth" class="form-control">
+              <option selected>ATSI</option>
+              <option>Non-ATSI</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- row 2 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_tchdl">TC/HDL Ratio</label>
+            <input type="text" class="form-control" id="text_tchdl" placeholder="eg. 3.5">
+          </div>
+          <div class="form-group col">
+            <label for="select_gender">Gender</label>
+            <select id="select_gender" class="form-control">
+              <option selected>Female</option>
+              <option>Male</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- row 3 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_bps">Blood Pressure Systolic (mm/Hg)</label>
+            <input type="text" class="form-control" id="text_bps" placeholder="eg. 110">
+          </div>
+          <div class="form-group col">
+            <label for="select_smoking">Smoking Status</label>
+            <select id="select_smoking" class="form-control">
+              <option selected>Non Smoker</option>
+              <option>Smoker</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- row 4 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_bpd">Blood Pressure Diastolic (mm/Hg)</label>
+            <input type="text" class="form-control" id="text_bpd" placeholder="eg. 70">
+          </div>
+          <div class="form-group col">
+            <label for="select_diabetes">Diabetes Status</label>
+            <select id="select_diabetes" class="form-control">
+              <option selected>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- row 5 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_acr">Albumin Creatinine Ratio (ACR)</label>
+            <input type="text" class="form-control" id="text_acr" placeholder="eg. 1.5">
+          </div>
+          <div class="form-group col">
+            <label for="select_cvd">History of Cardiovascular Disease?</label>
+            <select id="select_cvd" class="form-control">
+              <option selected>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- row 5 -->
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="text_egfr">Estimate Glomeruler Filtration Rate (eGFR)</label>
+            <input type="text" class="form-control" id="text_egfr" placeholder="eg. 90">
+          </div>
+          <div class="form-group col">
+            <label for="select_af">History of Atrial Fibrilation?</label>
+            <select id="select_af" class="form-control">
+              <option selected>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+        </div>    
+        
+        <button type="button" class="btn btn-primary" onClick="do_cvra();">Calculate!</button>
+        
+      </form>
+      
+      <!-- score card -->
+      <div class="row justify-content-center">
+        <div class="col-6">
+          <div class="card" id="score_card" style="display: none;">
+            <div class="card-header text-center">
+              CVR Assessment Score
+            </div>
+            <div class="card-body">
+              <p class="card-text text-center" id="score_p"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      
+    </div>
+    
+    <!--Scripts-->
+    <script>
+      var debug = true;
+    
+      function is_valid_numeric (value, min_value, max_value) {
+        if (value >= min_value && value <= max_value) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    
+      function is_valid_bool (value, yes, no) {
+        if (value == yes || value == no) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    
+      function get_age () {
+        if (debug) console.log("getting age...");
+      
+        var min_age = 20;
+        var max_age = 125;
+        var age = document.getElementById("text_age").value;
+        
+        if (is_valid_numeric(age, min_age, max_age)) {
+          return age;
+        } else {
+          return false;
+        }
+      }
+      
+      function get_tchdl () {
+        if (debug) console.log("getting tc/hdl...");
+      
+        var min_tchdl = 1.0;
+        var max_tchdl = 10.0;
+        var tchdl = document.getElementById("text_tchdl").value;
+        
+        if (is_valid_numeric(tchdl, min_tchdl, max_tchdl)) {
+          return tchdl;
+        } else {
+          return false;
+        }
+      }
+    
+      function get_bps () {
+        if (debug) console.log("getting bps...");
+      
+        var min_bps = 50;
+        var max_bps = 500;
+        var bps = document.getElementById("text_bps").value;
+        
+        if (is_valid_numeric(bps, min_bps, max_bps)) {
+          return bps;
+        } else {
+          return false;
+        }
+      }
+    
+      function get_bpd () {
+        if (debug) console.log("getting bps...");
+      
+        var min_bpd = 30;
+        var max_bpd = 300;
+        var bpd = document.getElementById("text_bpd").value;
+        
+        if (is_valid_numeric(bpd, min_bpd, max_bpd)) {
+          return bpd;
+        } else {
+          return false;
+        }
+      }
+      
+      function get_acr () {
+        if (debug) console.log("getting acr...");
+      
+        var min_acr = 0;
+        var max_acr = 500;
+        var acr = document.getElementById("text_acr").value;
+        
+        if (is_valid_numeric(acr, min_acr, max_acr)) {
+          return acr;
+        } else {
+          return false;
+        }
+      }
+      
+      function get_egfr () {
+        if (debug) console.log("getting egfr...");
+      
+        var min_egfr = 0;
+        var max_egfr = 500;
+        var egfr = document.getElementById("text_egfr").value;
+        
+        if (is_valid_numeric(egfr, min_egfr, max_egfr)) {
+          return egfr;
+        } else {
+          return false;
+        }
+      }
+      
+      function get_gender () {
+        
+        var female = "Female";
+        var male = "Male";
+        var gender = document.getElementById("select_gender").value;
+        
+        if (is_valid_bool(gender, female, male)) {
+          if (gender == female) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function get_ethnicity () {
+        
+        var atsi = "ATSI";
+        var nonatsi = "Non-ATSI";
+        var ethnicity = document.getElementById("select_eth").value;
+        
+        if (is_valid_bool(ethnicity, atsi, nonatsi)) {
+          if (ethnicity == atsi) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function get_smoking () {
+        
+        var smoker = "Smoker";
+        var nonsmoker = "Non Smoker";
+        var smoking_status = document.getElementById("select_smoking").value;
+        
+        if (is_valid_bool(smoking_status, smoker, nonsmoker)) {
+          if (smoking_status == smoker) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function get_diabetes () {
+        
+        var yes = "Yes";
+        var no = "No";
+        var diabetic_status = document.getElementById("select_diabetes").value;
+        
+        if (is_valid_bool(diabetic_status, yes, no)) {
+          if (diabetic_status == yes) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function get_cvd () {
+        
+        var yes = "Yes";
+        var no = "No";
+        var cvd = document.getElementById("select_cvd").value;
+        
+        if (is_valid_bool(cvd, yes, no)) {
+          if (cvd == yes) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function get_af () {
+        
+        var yes = "Yes";
+        var no = "No";
+        var af = document.getElementById("select_af").value;
+        
+        if (is_valid_bool(af, yes, no)) {
+          if (af == yes) {
+            return 1;
+          } else {
+            return 0;
+          }
+        } else {
+          return false;
+        }
+      }
+    
+      function calc_cvr () {
+        var age, ethnicity, gender;
+        var smoker, diabetic, hxcvd, hxaf;
+        var tchdl, bps, bpd, acr, egfr;
+        
+        // get age
+        age = get_age();
+        if (age == false) {
+          alert("Please enter a valid age (20 - 75)");
+          return;
+        }
+        if (debug) console.log("got a valid age: ", age);
+        
+        // get ethnicity
+        ethnicity = get_ethnicity();
+        if (debug) console.log("got ethnicity: ", ethnicity);
+        
+        // get ethnicity
+        gender = get_gender();
+        if (debug) console.log("got gender: ", gender);
+        
+        // get tc/hdl
+        tchdl = get_tchdl();
+        if (tchdl == false) {
+          alert("Please enter a valid TC/HDL (1.0 - 10.0)");
+          return;
+        }
+        if (debug) console.log("got tchdl: ", tchdl);
+        
+        // get smoking status
+        smoker = get_smoking();
+        if (debug) console.log("got smoking status: ", smoker);
+        
+        // get bp systolic
+        bps = get_bps();
+        if (bps == false) {
+          alert("Please enter a valid Systolic Blood Pressure (50 - 500)");
+          return;
+        }
+        if (debug) console.log("got bp systolic: ", bps);
+        
+        // get bp systolic
+        bpd = get_bpd();
+        if (bpd == false) {
+          alert("Please enter a valid Diastolic Blood Pressure (30 - 300)");
+          return;
+        }
+        if (debug) console.log("got bp diastolic: ", bpd);
+        
+        // get diabetic status
+        diabetic = get_diabetes();
+        if (debug) console.log("got diabetes status: ", diabetic);
+       
+        // get cvd status
+        hxcvd = get_cvd();
+        if (debug) console.log("got cvd status: ", hxcvd);
+        
+        // get diabetic status
+        hxaf = get_af();
+        if (debug) console.log("got af status: ", hxaf);
+        
+        // get ACR
+        acr = get_acr();
+        if (acr == false) {
+          alert("Please enter a valid ACR (0 - 500)");
+          return;
+        }
+        if (debug) console.log("got acr: ", acr);
+        
+        // get eGFR
+        egfr = get_egfr();
+        if (egfr == false) {
+          alert("Please enter a valid eGFR (1 - 200)");
+          return;
+        }
+        if (debug) console.log("got egfr: ", egfr);
+        
+        var risk_over_years = 5;
+        
+        // calculate core framingham
+        var score;
+        score = 18.8144;
+        if (debug) console.log("score: ", score);
+        score += (-1.2146 * gender);
+        if (debug) console.log("score: ", score);
+        score += (-1.8443 * Math.log(age));
+        if (debug) console.log("score: ", score);
+        score += (0.3668 * Math.log(age) * gender);
+        if (debug) console.log("score: ", score);
+        score += (-1.4032 * Math.log(bps));
+        if (debug) console.log("score: ", score);
+        score += (-0.3899 * smoker);
+        if (debug) console.log("score: ", score);
+        score += (-0.539 * Math.log(tchdl));
+        if (debug) console.log("score: ", score);
+        score += (-0.3036 * diabetic);
+        if (debug) console.log("score: ", score);
+        score += (-0.1697 * diabetic * gender);
+        if (debug) console.log("score: ", score);
+        
+        score2 = Math.exp(0.6536 + (-0.2402 * score));
+        if (debug) console.log("score: ", score);
+        score = (Math.log(risk_over_years) - score) / score2;
+        if (debug) console.log("score: ", score);
+        score = 1 - Math.exp(-Math.exp(score));
+        if (debug) console.log("score: ", score);
+        score *= 100; // convert to integer range 0-100
+        if (debug) console.log("score: ", score);
+        
+        // adjust for ethnicity
+        if (ethnicity == 1) {
+          // if atsi
+          score += 5;
+          } else {
+          // if non atsi and age > 65 with AF
+          if (hxaf == 1 && age > 65) {
+            score += 5;
+          }
+        }
+        
+        // score only accurate between 1 and 30 so we clip
+        if (score < 1) score = 1;
+        if (score > 30) score = 30;
+        
+        // apply auto high scores
+        //high bp
+        if (bps > 180 || bpd > 110) {
+          score = 30;
+        }
+        
+        // diabetics with microalbuminuria or over 60
+        if (diabetic == 1) {
+          if (gender == 0) {
+            if (acr > 2.5) {
+              score = 30;
+            }
+          } else {
+            if (acr > 3.5) {
+              score = 30;
+            }
+          }
+          if (age > 60) {
+            score = 30;
+          }
+        }
+        
+        // CKD
+        if (egfr < 45) {
+          score = 30;
+        }
+        
+        // CVD
+        if (hxcvd == 1) {
+          score = 30;
+        }
+        
+        // age
+        if (age > 75) {
+          score = 30;
+        }
+        
+        // we did it!
+        if (debug) console.log("CVRa Score: ", score);
+        
+        score = Math.round(score * 1000) / 1000;
+        
+        return score;
+
+      }
+    
+      function do_cvra() {
+        var score = calc_cvr();
+        
+          if (score > 0) {
+          
+          var score_card = document.getElementById("score_card");
+          var score_p = document.getElementById("score_p");
+          
+          score_p.textContent = score;
+          
+          if (score < 10) {
+            score_card.className = "card text-white mb-3 bg-success";
+          } else if (score < 16) {
+            score_card.className = "card text-white mb-3 bg-warning";
+          } else {
+            score_card.className = "card text-white mb-3 bg-danger";
+          }
+          
+          score_card.style.display = "block";
+        }
+      }
+    
+    </script>
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+  </body>
+</html>
