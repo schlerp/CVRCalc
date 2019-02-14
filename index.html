@@ -15,7 +15,7 @@
         <h1>NT Cardiovascular Risk Calculator</h1>
       </header>
       
-      <form>
+      <form id="cvra_calc">
         <!-- row 1 -->
         <div class="form-row">
           <div class="form-group col">
@@ -33,9 +33,13 @@
         
         <!-- row 2 -->
         <div class="form-row">
-          <div class="form-group col">
+          <div class="form-group col-3">
             <label for="text_tchdl">TC/HDL Ratio</label>
             <input type="text" class="form-control" id="text_tchdl" placeholder="eg. 3.5">
+          </div>
+          <div class="form-group col-3">
+            <label for="text_tchdl">Total Cholesterol (TC)</label>
+            <input type="text" class="form-control" id="text_tc" placeholder="eg. 5.1">
           </div>
           <div class="form-group col">
             <label for="select_gender">Gender</label>
@@ -45,7 +49,7 @@
             </select>
           </div>
         </div>
-        
+                
         <!-- row 3 -->
         <div class="form-row">
           <div class="form-group col">
@@ -164,12 +168,26 @@
       function get_tchdl () {
         if (debug) console.log("getting tc/hdl...");
       
-        var min_tchdl = 1.0;
-        var max_tchdl = 10.0;
+        var min_tchdl = 0.001;
+        var max_tchdl = 100.0;
         var tchdl = document.getElementById("text_tchdl").value;
         
         if (is_valid_numeric(tchdl, min_tchdl, max_tchdl)) {
           return tchdl;
+        } else {
+          return false;
+        }
+      }
+    
+      function get_tc () {
+        if (debug) console.log("getting tc...");
+      
+        var min_tchdl = 0.001;
+        var max_tchdl = 200.0;
+        var tc = document.getElementById("text_tc").value;
+        
+        if (is_valid_numeric(tc, min_tchdl, max_tchdl)) {
+          return tc;
         } else {
           return false;
         }
@@ -357,7 +375,15 @@
         // get tc/hdl
         tchdl = get_tchdl();
         if (tchdl == false) {
-          alert("Please enter a valid TC/HDL (1.0 - 10.0)");
+          alert("Please enter a valid TC/HDL (0.001 - 100.0)");
+          return;
+        }
+        if (debug) console.log("got tchdl: ", tchdl);
+        
+        // get tc/hdl
+        tc = get_tc();
+        if (tc == false) {
+          alert("Please enter a valid TC (0.001 - 200.0)");
           return;
         }
         if (debug) console.log("got tchdl: ", tchdl);
@@ -463,6 +489,11 @@
           score = 30;
         }
         
+        // High total cholesterol
+        if (tc > 7.5) {
+          score = 30;
+        }
+        
         // diabetics with microalbuminuria or over 60
         if (diabetic == 1) {
           if (gender == 0) {
@@ -510,17 +541,19 @@
           
           var score_card = document.getElementById("score_card");
           var score_p = document.getElementById("score_p");
-          
-          score_p.textContent = score;
+          var score_category = '';
           
           if (score < 10) {
             score_card.className = "card text-white mb-3 bg-success";
+            score_category = ' (Low)';
           } else if (score < 16) {
             score_card.className = "card text-white mb-3 bg-warning";
+            score_category = ' (Moderate)';
           } else {
             score_card.className = "card text-white mb-3 bg-danger";
+            score_category = ' (High)';
           }
-          
+          score_p.textContent = score + score_category;
           score_card.style.display = "block";
         }
       }
